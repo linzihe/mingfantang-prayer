@@ -7,7 +7,7 @@
 <!-- Google Fonts: cross-platform Chinese calligraphy -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Long+Cang&family=Zhi+Mang+Xing&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Long+Cang&family=Zhi+Mang+Xing&family=Noto+Serif+SC:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 /* ===== Reset & Base ===== */
@@ -404,7 +404,7 @@ function renderCertCanvas(paperW_mm, paperH_mm, scaleFactor) {
 
   // Cross-platform fonts: Long Cang(龙藏/楷书) + Ma Shan Zheng(马山正/行楷)
   // Fallback: system KaiTi(Windows) → STKaiti(Mac) → PingFang(iOS) → serif
-  var ffBold = "SimSun, 宋体, Songti SC, STSong, serif";
+  var ffBold = "Noto Serif SC, SimSun, 宋体, Songti SC, STSong, serif";
   var ffNormal = "Ma Shan Zheng, Zhi Mang Xing, STXingkai, KaiTi, STKaiti, PingFang SC, serif";
   var tc = "#0d0505";
 
@@ -435,19 +435,13 @@ function renderCertCanvas(paperW_mm, paperH_mm, scaleFactor) {
   var NL = String.fromCharCode(10);
   var FS = String.fromCharCode(0x3000);
 
-  // === TITLE (宋体加粗, large, simulated bold) ===
+  // === TITLE (思源宋体 bold 700, large) ===
   var titleSz = Math.round(9 * PX);
   ctx.fillStyle = tc;
-  ctx.font = titleSz + "px " + ffBold;
+  ctx.font = "bold " + titleSz + "px " + ffBold;
   ctx.textAlign = "center";
   ctx.textBaseline = "top";
-  var tText = T("明梵堂坛前祈福笺");
-  var tX = W / 2;
-  // Simulated bold for title
-  ctx.fillText(tText, tX - 0.6, cT);
-  ctx.fillText(tText, tX + 0.6, cT);
-  ctx.fillText(tText, tX, cT - 0.4);
-  ctx.fillText(tText, tX, cT + 0.4);
+  ctx.fillText(T("明梵堂坛前祈福笺"), W / 2, cT);
   var colTop = cT + Math.round(titleSz * 2.2);
 
   // === Build formatted text: array of {char, bold, size} ===
@@ -531,7 +525,6 @@ function renderCertCanvas(paperW_mm, paperH_mm, scaleFactor) {
   colGap = Math.max(minGap, Math.floor((usableW - totalCols * colW) / (totalCols + 1)));
 
   // === Draw main content columns (right to left) ===
-  // Simulated bold: draw bold chars twice with micro-offset (Google Fonts lack true bold)
   var curX = cR - colW;
   var idx = 0;
   var lastContentX = curX;
@@ -549,17 +542,10 @@ function renderCertCanvas(paperW_mm, paperH_mm, scaleFactor) {
         ctx.fillStyle = tc;
         var sz = ch.b ? bodySz : smallSz;
         var ff = ch.b ? ffBold : ffNormal;
-        ctx.font = sz + "px " + ff;
+        ctx.font = (ch.b ? "bold " : "") + sz + "px " + ff;
         lastBold = ch.b;
       }
-      if (ch.b) {
-        // Simulate bold: draw twice with micro horizontal offset
-        ctx.fillText(ch.c, curX - 0.4, cy);
-        ctx.fillText(ch.c, curX + 0.4, cy);
-        ctx.fillText(ch.c, curX, cy - 0.3);
-      } else {
-        ctx.fillText(ch.c, curX, cy);
-      }
+      ctx.fillText(ch.c, curX, cy);
       cy += (ch.b ? bodySz : smallSz) * lh;
     }
     lastContentX = curX;
@@ -580,16 +566,10 @@ function renderCertCanvas(paperW_mm, paperH_mm, scaleFactor) {
       ctx.fillStyle = tc;
       var fsz = fch.b ? bodySz : smallSz;
       var fff = fch.b ? ffBold : ffNormal;
-      ctx.font = fsz + "px " + fff;
+      ctx.font = (fch.b ? "bold " : "") + fsz + "px " + fff;
       flastBold = fch.b;
     }
-    if (fch.b) {
-      ctx.fillText(fch.c, footerX - 0.4, fcy);
-      ctx.fillText(fch.c, footerX + 0.4, fcy);
-      ctx.fillText(fch.c, footerX, fcy - 0.3);
-    } else {
-      ctx.fillText(fch.c, footerX, fcy);
-    }
+    ctx.fillText(fch.c, footerX, fcy);
     fcy += (fch.b ? bodySz : smallSz) * lh;
     fi++;
   }
