@@ -465,20 +465,21 @@ function renderCertCanvas(paperW_mm, paperH_mm, scaleFactor) {
   formatted = formatted.concat(seg("愿承灯火光明之力，消除一切阻滞烦忧，福慧增长，所愿和平顺遂。", false));
   formatted = formatted.concat(seg("弟子诚心叩请祖师做主，伏惟垂鉴。", false));
 
-  // Footer - bold+楷书
-  formatted = formatted.concat(seg(NL, false));
-  formatted = formatted.concat(seg("祈福主事：明梵堂", true));
-  formatted = formatted.concat(seg(NL, false));
-  formatted = formatted.concat(seg(dt.today + FS + "吉时", true));
+  // Footer - bold+楷书 (separate column)
+  var footerFormatted = [];
+  footerFormatted = footerFormatted.concat(seg("祈福主事：明梵堂", true));
+  footerFormatted = footerFormatted.concat(seg(NL, false));
+  footerFormatted = footerFormatted.concat(seg(dt.today + FS + "吉时", true));
 
-  // === Adaptive sizing: ALL text MUST fit on one page ===
+  // === Adaptive sizing: ALL text MUST fit ===
   var colH = usableH;
   var lh = 1.4;
   var bodySz, smallSz, cpc, totalCols, colW, colGap;
-  var totalChars = formatted.length;
+  var mainChars = formatted.length;
+  var footerChars = footerFormatted.length;
+  var totalChars = mainChars + footerChars + 4; // +4 for footer gap padding
 
-  // Start with a reasonable size, shrink until it fits
-  bodySz = Math.round(8 * PX); // start large
+  bodySz = Math.round(8 * PX);
   var minSz = Math.round(2.5 * PX);
 
   while (bodySz >= minSz) {
@@ -487,19 +488,17 @@ function renderCertCanvas(paperW_mm, paperH_mm, scaleFactor) {
     colW = Math.round(bodySz * 1.25);
     var neededW = totalCols * colW + (totalCols + 1) * Math.round(bodySz * 0.5);
     if (neededW <= usableW) break;
-    bodySz = Math.round(bodySz * 0.92); // shrink by 8%
+    bodySz = Math.round(bodySz * 0.92);
   }
 
-  // Normal text is one size smaller than bold labels
   smallSz = Math.round(bodySz * 0.85);
-
-  // Column gap
   var minGap = Math.round(bodySz * 0.5);
   colGap = Math.max(minGap, Math.floor((usableW - totalCols * colW) / (totalCols + 1)));
 
-  // === Draw columns from RIGHT to LEFT ===
+  // === Draw main content columns (right to left) ===
   var curX = cR - colW;
   var idx = 0;
+  var lastContentX = curX;
 
   while (idx < formatted.length && curX > cL) {
     ctx.textAlign = "left";
@@ -520,7 +519,30 @@ function renderCertCanvas(paperW_mm, paperH_mm, scaleFactor) {
       ctx.fillText(ch.c, curX, cy);
       cy += (ch.b ? bodySz : smallSz) * lh;
     }
+    lastContentX = curX;
     curX -= colW + colGap;
+  }
+
+  // === Footer: its own column, left of main content ===
+  var footerX = lastContentX - colW - Math.round(bodySz * 1.5);
+  if (footerX < cL) footerX = cL + Math.round(bodySz * 0.5);
+
+  var fi = 0;
+  var fcy = colTop;
+  var flastBold = null;
+  while (fi < footerFormatted.length) {
+    if (fcy + bodySz > cB) break;
+    var fch = footerFormatted[fi];
+    if (fch.b !== flastBold) {
+      ctx.fillStyle = tc;
+      var fsz = fch.b ? bodySz : smallSz;
+      var fff = fch.b ? ffBold : ffNormal;
+      ctx.font = (fch.b ? "bold " : "") + fsz + "px " + fff;
+      flastBold = fch.b;
+    }
+    ctx.fillText(fch.c, footerX, fcy);
+    fcy += (fch.b ? bodySz : smallSz) * lh;
+    fi++;
   }
 
   return cvs;
@@ -536,8 +558,8 @@ function showPreview() {
   const {w,h}=getPaperMM();
   emptyHint.style.display='none';
 
-  // Render at 3x for sharper screen preview
-  const cvs = renderCertCanvas(w,h,3);
+  // Render at 4x for sharper screen preview
+  const cvs = renderCertCanvas(w,h,4);
   previewImg = cvs;
 
   // Remove old canvas
@@ -561,8 +583,8 @@ function renderToScreen() {
   if (!dispCvs || !previewImg) return;
 
   // previewImg is at 3x scale, so base display = previewImg.width/3 * zoom
-  const baseW = previewImg.width / 3;
-  const baseH = previewImg.height / 3;
+  const baseW = previewImg.width / 4;
+  const baseH = previewImg.height / 4;
   const dw = Math.round(baseW * currentZoom);
   const dh = Math.round(baseH * currentZoom);
 
@@ -595,8 +617,8 @@ function zoomFit(){
 async function exportPDF(){
   const {w,h}=getPaperMM();
   showToast('正在生成PDF，请稍候...',3000);
-  // Render at 4x for print quality (~384 DPI)
-  const cvs=renderCertCanvas(w,h,4);
+  // Render at 5x for print quality (~480 DPI)
+  const cvs=renderCertCanvas(w,h,5);
   const imgData=cvs.toDataURL('image/jpeg',0.95);
 
   const {jsPDF}=window.jspdf;
