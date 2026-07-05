@@ -435,13 +435,19 @@ function renderCertCanvas(paperW_mm, paperH_mm, scaleFactor) {
   var NL = String.fromCharCode(10);
   var FS = String.fromCharCode(0x3000);
 
-  // === TITLE (楷书加粗, large) ===
+  // === TITLE (宋体加粗, large, simulated bold) ===
   var titleSz = Math.round(9 * PX);
   ctx.fillStyle = tc;
-  ctx.font = "bold " + titleSz + "px " + ffBold;
+  ctx.font = titleSz + "px " + ffBold;
   ctx.textAlign = "center";
   ctx.textBaseline = "top";
-  ctx.fillText(T("明梵堂坛前祈福笺"), W / 2, cT);
+  var tText = T("明梵堂坛前祈福笺");
+  var tX = W / 2;
+  // Simulated bold for title
+  ctx.fillText(tText, tX - 0.6, cT);
+  ctx.fillText(tText, tX + 0.6, cT);
+  ctx.fillText(tText, tX, cT - 0.4);
+  ctx.fillText(tText, tX, cT + 0.4);
   var colTop = cT + Math.round(titleSz * 2.2);
 
   // === Build formatted text: array of {char, bold, size} ===
@@ -525,6 +531,7 @@ function renderCertCanvas(paperW_mm, paperH_mm, scaleFactor) {
   colGap = Math.max(minGap, Math.floor((usableW - totalCols * colW) / (totalCols + 1)));
 
   // === Draw main content columns (right to left) ===
+  // Simulated bold: draw bold chars twice with micro-offset (Google Fonts lack true bold)
   var curX = cR - colW;
   var idx = 0;
   var lastContentX = curX;
@@ -542,10 +549,17 @@ function renderCertCanvas(paperW_mm, paperH_mm, scaleFactor) {
         ctx.fillStyle = tc;
         var sz = ch.b ? bodySz : smallSz;
         var ff = ch.b ? ffBold : ffNormal;
-        ctx.font = (ch.b ? "bold " : "") + sz + "px " + ff;
+        ctx.font = sz + "px " + ff;
         lastBold = ch.b;
       }
-      ctx.fillText(ch.c, curX, cy);
+      if (ch.b) {
+        // Simulate bold: draw twice with micro horizontal offset
+        ctx.fillText(ch.c, curX - 0.4, cy);
+        ctx.fillText(ch.c, curX + 0.4, cy);
+        ctx.fillText(ch.c, curX, cy - 0.3);
+      } else {
+        ctx.fillText(ch.c, curX, cy);
+      }
       cy += (ch.b ? bodySz : smallSz) * lh;
     }
     lastContentX = curX;
@@ -566,10 +580,16 @@ function renderCertCanvas(paperW_mm, paperH_mm, scaleFactor) {
       ctx.fillStyle = tc;
       var fsz = fch.b ? bodySz : smallSz;
       var fff = fch.b ? ffBold : ffNormal;
-      ctx.font = (fch.b ? "bold " : "") + fsz + "px " + fff;
+      ctx.font = fsz + "px " + fff;
       flastBold = fch.b;
     }
-    ctx.fillText(fch.c, footerX, fcy);
+    if (fch.b) {
+      ctx.fillText(fch.c, footerX - 0.4, fcy);
+      ctx.fillText(fch.c, footerX + 0.4, fcy);
+      ctx.fillText(fch.c, footerX, fcy - 0.3);
+    } else {
+      ctx.fillText(fch.c, footerX, fcy);
+    }
     fcy += (fch.b ? bodySz : smallSz) * lh;
     fi++;
   }
