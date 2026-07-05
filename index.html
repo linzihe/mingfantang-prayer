@@ -180,12 +180,12 @@ input[type="number"]{max-width:72px}
     <div class="btn-row">
       <button class="btn btn-primary" id="btn-ai" type="button">✨ AI润色祈愿文</button>
       <button class="btn btn-primary" id="btn-gen" type="button">📜 生成祈福笺预览</button>
-      <button class="btn btn-outline" id="btn-pdf" type="button">🖨️ 导出PDF打印</button>
+      <button class="btn btn-outline" id="btn-pdf" type="button">🖼️ 导出图片打印</button>
     </div>
   </div>
 
   <div style="text-align:center;font-size:0.65rem;color:var(--text-light);padding-bottom:6px">
-    所有资料仅保存在本地浏览器 · 无后端服务器<br>快捷键 Ctrl+G 生成预览 · Ctrl+P 导出PDF
+    所有资料仅保存在本地浏览器 · 无后端服务器<br>快捷键 Ctrl+G 生成预览 · Ctrl+P 导出图片
   </div>
 </div>
 
@@ -587,8 +587,8 @@ function showPreview() {
   const {w,h}=getPaperMM();
   emptyHint.style.display='none';
 
-  // Render at 4x for sharper screen preview
-  const cvs = renderCertCanvas(w,h,4);
+  // Render at 5x for sharper screen preview
+  const cvs = renderCertCanvas(w,h,5);
   previewImg = cvs;
 
   // Remove old canvas
@@ -612,8 +612,8 @@ function renderToScreen() {
   if (!dispCvs || !previewImg) return;
 
   // previewImg is at 3x scale, so base display = previewImg.width/3 * zoom
-  const baseW = previewImg.width / 4;
-  const baseH = previewImg.height / 4;
+  const baseW = previewImg.width / 5;
+  const baseH = previewImg.height / 5;
   const dw = Math.round(baseW * currentZoom);
   const dh = Math.round(baseH * currentZoom);
 
@@ -645,18 +645,21 @@ function zoomFit(){
    =========================================================== */
 async function exportPDF(){
   const {w,h}=getPaperMM();
-  showToast('正在生成PDF，请稍候...',3000);
-  // Render at 5x for print quality (~480 DPI)
-  const cvs=renderCertCanvas(w,h,5);
-  const imgData=cvs.toDataURL('image/jpeg',0.95);
-
-  const {jsPDF}=window.jspdf;
-  const pdf=new jsPDF({orientation:w>=h?'landscape':'portrait',unit:'mm',format:[w,h]});
-  pdf.addImage(imgData,'JPEG',0,0,w,h);
-
-  const name=(f_name.value||'善信').replace(/[\\/:*?"<>|]/g,'_');
-  pdf.save(`明梵堂祈福笺_${name}_${new Date().toISOString().slice(0,10)}.pdf`);
-  showToast('PDF已导出！请打开文件进行打印');
+  showToast('正在生成高清图片，请稍候...',3000);
+  // Render at 6x for ultra-high resolution (~576 DPI)
+  const cvs=renderCertCanvas(w,h,6);
+  cvs.toBlob(function(blob){
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    const name=(f_name.value||'善信').replace(/[\\/:*?"<>|]/g,'_');
+    a.href=url;
+    a.download='明梵堂祈福笺_'+name+'_'+new Date().toISOString().slice(0,10)+'.png';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('高清图片已导出！可直接打印');
+  }, 'image/png');
 }
 
 /* ===========================================================
