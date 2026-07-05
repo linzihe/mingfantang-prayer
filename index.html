@@ -374,16 +374,18 @@ function renderCertCanvas(paperW_mm, paperH_mm, scaleFactor) {
   }
   ctx.putImageData(imgData, 0, 0);
 
-  var ff = "STXingkai, 华文行楷, KaiTi, 楷体, STKaiti, 华文楷体, FangSong, 仿宋, SimSun, 宋体, serif";
+  // Two fonts: bold labels use KaiTi (楷书), normal text uses XingKai (行楷)
+  var ffBold = "KaiTi, 楷体, STKaiti, 华文楷体, SimSun, 宋体, serif";
+  var ffNormal = "STXingkai, 华文行楷, KaiTi, 楷体, FangSong, 仿宋, SimSun, 宋体, serif";
   var tc = "#0d0505";
 
-  // === LOGO watermark at center ===
+  // === BIG Logo watermark at center ===
   if (logoImage && logoImage.complete && logoImage.naturalWidth > 0) {
-    var logoMax = Math.round(65 * PX);
+    var logoMax = Math.round(85 * PX);
     var ratio = Math.min(logoMax / logoImage.naturalWidth, logoMax / logoImage.naturalHeight);
     var lw = Math.round(logoImage.naturalWidth * ratio);
     var lh = Math.round(logoImage.naturalHeight * ratio);
-    ctx.globalAlpha = 0.3;
+    ctx.globalAlpha = 0.28;
     ctx.drawImage(logoImage, Math.round((W - lw) / 2), Math.round((H - lh) / 2), lw, lh);
     ctx.globalAlpha = 1.0;
   }
@@ -404,17 +406,16 @@ function renderCertCanvas(paperW_mm, paperH_mm, scaleFactor) {
   var NL = String.fromCharCode(10);
   var FS = String.fromCharCode(0x3000);
 
-  // === TITLE (bold, large) ===
+  // === TITLE (楷书加粗, large) ===
   var titleSz = Math.round(9 * PX);
   ctx.fillStyle = tc;
-  ctx.font = "bold " + titleSz + "px " + ff;
+  ctx.font = "bold " + titleSz + "px " + ffBold;
   ctx.textAlign = "center";
   ctx.textBaseline = "top";
   ctx.fillText(T("明梵堂坛前祈福笺"), W / 2, cT);
   var colTop = cT + Math.round(titleSz * 2.2);
 
-  // === Build formatted text: array of {char, bold} ===
-  // Helper: text -> array of {char, bold}
+  // === Build formatted text: array of {char, bold, size} ===
   function seg(text, isBold) {
     var arr = [];
     for (var i = 0; i < text.length; i++) {
@@ -423,10 +424,9 @@ function renderCertCanvas(paperW_mm, paperH_mm, scaleFactor) {
     return arr;
   }
 
-  // Build the full text as formatted segments
   var formatted = [];
 
-  // -- Info section (labels bold, values normal) --
+  // Info - labels bold+楷书, values normal+行楷
   formatted = formatted.concat(seg("奉点：", true));
   formatted = formatted.concat(seg(dt.lamp + FS + dt.duration, false));
   formatted = formatted.concat(seg(NL, false));
@@ -447,83 +447,85 @@ function renderCertCanvas(paperW_mm, paperH_mm, scaleFactor) {
   formatted = formatted.concat(seg("住址：", true));
   formatted = formatted.concat(seg(dt.addr, false));
 
-  // -- Lamp count (if provided) --
   if (dt.lampCount) {
     formatted = formatted.concat(seg(NL, false));
     formatted = formatted.concat(seg("供灯盏数：", true));
     formatted = formatted.concat(seg(dt.lampCount, false));
   }
 
-  // -- Prayer section (header bold, body normal) --
+  // Prayer - header bold+楷书, body normal+行楷
   formatted = formatted.concat(seg(NL, false));
   formatted = formatted.concat(seg("祈愿：", true));
   formatted = formatted.concat(seg(dt.prayer.replace(/\n/g, ""), false));
 
-  // -- Closing text (all normal) --
+  // Closing - all normal+行楷
   formatted = formatted.concat(seg(NL, false));
   formatted = formatted.concat(seg("弟子诚心叩拜本堂历代祖师，仰求慈光垂护。", false));
   formatted = formatted.concat(seg("今主事弟子于明梵堂坛前，焚香点灯，以此明灯功德，专门回向善信" + dt.name + "。", false));
   formatted = formatted.concat(seg("愿承灯火光明之力，消除一切阻滞烦忧，福慧增长，所愿和平顺遂。", false));
   formatted = formatted.concat(seg("弟子诚心叩请祖师做主，伏惟垂鉴。", false));
 
-  // -- Footer (bold) --
+  // Footer - bold+楷书
   formatted = formatted.concat(seg(NL, false));
   formatted = formatted.concat(seg("祈福主事：明梵堂", true));
   formatted = formatted.concat(seg(NL, false));
   formatted = formatted.concat(seg(dt.today + FS + "吉时", true));
 
-  // === Adaptive sizing ===
+  // === Adaptive sizing: ALL text MUST fit on one page ===
   var colH = usableH;
   var lh = 1.4;
-  var bodySz = Math.round(4 * PX);
-  var maxSz = Math.round(10 * PX);
+  var bodySz, smallSz, cpc, totalCols, colW, colGap;
+  var totalChars = formatted.length;
 
-  for (var iter = 0; iter < 15; iter++) {
-    var mid = Math.round((bodySz + maxSz) / 2);
-    var cpc = Math.floor(colH / (mid * lh));
-    var totalCols = Math.ceil(formatted.length / cpc);
-    var colW = mid * 1.25;
-    if ((totalCols * colW) / usableW < 0.92) bodySz = mid; else maxSz = mid;
+  // Start with a reasonable size, shrink until it fits
+  bodySz = Math.round(8 * PX); // start large
+  var minSz = Math.round(2.5 * PX);
+
+  while (bodySz >= minSz) {
+    cpc = Math.floor(colH / (bodySz * lh));
+    totalCols = Math.ceil(totalChars / cpc);
+    colW = Math.round(bodySz * 1.25);
+    var neededW = totalCols * colW + (totalCols + 1) * Math.round(bodySz * 0.5);
+    if (neededW <= usableW) break;
+    bodySz = Math.round(bodySz * 0.92); // shrink by 8%
   }
 
-  var smallSz = Math.round(bodySz * 0.85);
-  var cpc = Math.floor(colH / (bodySz * lh));
-  var totalCols = Math.ceil(formatted.length / cpc);
-  var colW = Math.round(bodySz * 1.25);
+  // Normal text is one size smaller than bold labels
+  smallSz = Math.round(bodySz * 0.85);
 
-  // Distribute columns evenly
-  var colGap = Math.max(
-    Math.round(bodySz * 0.5),
-    Math.floor((usableW - totalCols * colW) / (totalCols + 1))
-  );
+  // Column gap
+  var minGap = Math.round(bodySz * 0.5);
+  colGap = Math.max(minGap, Math.floor((usableW - totalCols * colW) / (totalCols + 1)));
 
-  // === Draw all columns from RIGHT to LEFT ===
+  // === Draw columns from RIGHT to LEFT ===
   var curX = cR - colW;
   var idx = 0;
 
   while (idx < formatted.length && curX > cL) {
-    ctx.fillStyle = tc;
     ctx.textAlign = "left";
     ctx.textBaseline = "top";
     var cy = colTop;
-    var colStart = idx;
     var lastBold = null;
 
     for (var j = 0; j < cpc && idx < formatted.length; j++, idx++) {
       if (cy + bodySz > cB) break;
       var ch = formatted[idx];
       if (ch.b !== lastBold) {
-        ctx.font = (ch.b ? "bold " : "") + bodySz + "px " + ff;
+        ctx.fillStyle = tc;
+        var sz = ch.b ? bodySz : smallSz;
+        var ff = ch.b ? ffBold : ffNormal;
+        ctx.font = (ch.b ? "bold " : "") + sz + "px " + ff;
         lastBold = ch.b;
       }
       ctx.fillText(ch.c, curX, cy);
-      cy += bodySz * lh;
+      cy += (ch.b ? bodySz : smallSz) * lh;
     }
     curX -= colW + colGap;
   }
 
   return cvs;
 }
+
 
 
 
