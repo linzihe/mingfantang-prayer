@@ -404,7 +404,7 @@ function renderCertCanvas(paperW_mm, paperH_mm, scaleFactor) {
 
   // Cross-platform fonts: Long Cang(龙藏/楷书) + Ma Shan Zheng(马山正/行楷)
   // Fallback: system KaiTi(Windows) → STKaiti(Mac) → PingFang(iOS) → serif
-  var ffBold = "Long Cang, STKaiti, KaiTi, PingFang SC, serif";
+  var ffBold = "SimSun, 宋体, Songti SC, STSong, serif";
   var ffNormal = "Ma Shan Zheng, Zhi Mang Xing, STXingkai, KaiTi, STKaiti, PingFang SC, serif";
   var tc = "#0d0505";
 
@@ -716,11 +716,13 @@ window.addEventListener('resize',()=>{if(previewImg)zoomFit()});
    =========================================================== */
 function init(){
   load();toggleCustom();
+  if(f_apikey.value) console.log('API Key 已从本地存储加载: ' + f_apikey.value.substring(0,6) + '...');
   if(f_name.value||f_prayer.value||f_lamp.value){setTimeout(()=>{showPreview();setTimeout(()=>zoomFit(),120)},350)}
 }
 init();
-console.log('%c明梵堂祈福笺 v4 — Canvas渲染引擎已就绪','color:#c9a84c;font-size:16px;');
-console.log('教程: 1.填表 2.填API Key 3.AI润色 4.生成预览 5.导出PDF');
+// Extra: ensure API key saves on blur (belt-and-suspenders)
+f_apikey.addEventListener('blur', save);
+console.log('%c明梵堂祈福笺 v4 — 数据自动保存至浏览器','color:#c9a84c;font-size:16px;');
 })();
 </script>
 </body>
