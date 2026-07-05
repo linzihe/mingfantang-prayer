@@ -583,9 +583,12 @@ function renderCertCanvas(paperW_mm, paperH_mm, scaleFactor) {
 /* ===========================================================
    PREVIEW
    =========================================================== */
-function showPreview() {
+async function showPreview() {
   const {w,h}=getPaperMM();
   emptyHint.style.display='none';
+
+  // Wait for Google Fonts to fully load before canvas render
+  await document.fonts.ready;
 
   // Render at 5x for sharper screen preview
   const cvs = renderCertCanvas(w,h,5);
@@ -646,6 +649,8 @@ function zoomFit(){
 async function exportPDF(){
   const {w,h}=getPaperMM();
   showToast('正在生成高清图片，请稍候...',3000);
+  // Wait for Google Fonts
+  await document.fonts.ready;
   // Render at 6x for ultra-high resolution (~576 DPI)
   const cvs=renderCertCanvas(w,h,6);
   cvs.toBlob(function(blob){
@@ -706,7 +711,7 @@ async function aiPolish(){
    =========================================================== */
 btnTest.addEventListener('click',testApi);
 btnAi.addEventListener('click',aiPolish);
-btnGen.addEventListener('click',()=>{save();showPreview();showToast('祈福笺预览已生成')});
+btnGen.addEventListener('click',async()=>{save();await showPreview();showToast('祈福笺预览已生成')});
 btnPdf.addEventListener('click',async()=>{if(!previewImg){showPreview();await new Promise(r=>setTimeout(r,200))}await exportPDF()});
 $('#btn-zin').addEventListener('click',zoomIn);
 $('#btn-zout').addEventListener('click',zoomOut);
@@ -717,10 +722,12 @@ window.addEventListener('resize',()=>{if(previewImg)zoomFit()});
 /* ===========================================================
    INIT
    =========================================================== */
-function init(){
+async function init(){
   load();toggleCustom();
+  // Pre-warm Google Fonts for canvas rendering
+  await document.fonts.ready;
   if(f_apikey.value) console.log('API Key 已从本地存储加载: ' + f_apikey.value.substring(0,6) + '...');
-  if(f_name.value||f_prayer.value||f_lamp.value){setTimeout(()=>{showPreview();setTimeout(()=>zoomFit(),120)},350)}
+  if(f_name.value||f_prayer.value||f_lamp.value){setTimeout(async()=>{await showPreview();setTimeout(()=>zoomFit(),120)},350)}
 }
 init();
 // Extra: ensure API key saves on blur (belt-and-suspenders)
