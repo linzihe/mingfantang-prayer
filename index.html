@@ -7,7 +7,7 @@
 <!-- Google Fonts: cross-platform Chinese calligraphy -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Long+Cang&family=Zhi+Mang+Xing&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 /* ===== Reset & Base ===== */
@@ -370,10 +370,10 @@ function getData(){
    Pure Canvas 2D — draws every char manually for reliability
    =========================================================== */
 
-// Google Fonts for cross-platform (iOS/Android/Windows/Mac)
-// Ma Shan Zheng = 马山正 (行楷风格) | Noto Serif SC = 思源宋体 (楷书风格)
+// Google Fonts for cross-platform Chinese calligraphy
+// Long Cang(龙藏/楷书) | Ma Shan Zheng(马山正/行楷) | Zhi Mang Xing(志莽行/行书)
 function getCalligraphyFont() {
-  return 'Ma Shan Zheng, STXingkai, KaiTi, Noto Serif SC, SimSun, serif';
+  return 'Ma Shan Zheng, Long Cang, Zhi Mang Xing, STXingkai, KaiTi, STKaiti, PingFang SC, serif';
 }
 
 function renderCertCanvas(paperW_mm, paperH_mm, scaleFactor) {
@@ -402,15 +402,15 @@ function renderCertCanvas(paperW_mm, paperH_mm, scaleFactor) {
   }
   ctx.putImageData(imgData, 0, 0);
 
-  // Two Google Fonts: bold labels = 楷书(Noto Serif SC), normal text = 行楷(Ma Shan Zheng)
-  // Fallback chain works on all platforms including iOS
-  var ffBold = "Noto Serif SC, STKaiti, KaiTi, SimSun, serif";
-  var ffNormal = "Ma Shan Zheng, STXingkai, KaiTi, Noto Serif SC, serif";
+  // Cross-platform fonts: Long Cang(龙藏/楷书) + Ma Shan Zheng(马山正/行楷)
+  // Fallback: system KaiTi(Windows) → STKaiti(Mac) → PingFang(iOS) → serif
+  var ffBold = "Long Cang, STKaiti, KaiTi, PingFang SC, serif";
+  var ffNormal = "Ma Shan Zheng, Zhi Mang Xing, STXingkai, KaiTi, STKaiti, PingFang SC, serif";
   var tc = "#0d0505";
 
   // === BIG Logo watermark at center ===
   if (logoImage && logoImage.complete && logoImage.naturalWidth > 0) {
-    var logoMax = Math.round(85 * PX);
+    var logoMax = Math.round(100 * PX);
     var ratio = Math.min(logoMax / logoImage.naturalWidth, logoMax / logoImage.naturalHeight);
     var lw = Math.round(logoImage.naturalWidth * ratio);
     var lh = Math.round(logoImage.naturalHeight * ratio);
