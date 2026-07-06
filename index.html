@@ -332,31 +332,37 @@ function getPaperMM(){
 
 // Chinese formal numerals (大写数字 / 会计用数字)
 const CN_DIGITS = ['〇','一','二','三','四','五','六','七','八','九'];
-const CN_UNITS  = ['','拾','佰','仟','万'];
 
-function numToCN(n) {
-  // Convert integer to formal Chinese numeral (e.g. 2026 → 贰零贰陆)
-  if (n === 0) return CN_DIGITS[0];
+// Digit-by-digit for years: 2026 → 二〇二六
+function yearToCN(n) {
   const s = String(n);
   let r = '';
-  for (let i = 0; i < s.length; i++) {
-    r += CN_DIGITS[parseInt(s[i])];
-  }
-  return r;
+  for (let i = 0; i < s.length; i++) r += CN_DIGITS[parseInt(s[i])];
+  return r || CN_DIGITS[0];
+}
+
+// Proper Chinese number for months/days: 11 → 十一, 31 → 三十一
+function numToCN(n) {
+  if (n === 0) return CN_DIGITS[0];
+  if (n < 10) return CN_DIGITS[n];
+  if (n < 20) return '十' + (n === 10 ? '' : CN_DIGITS[n - 10]);
+  const tens = Math.floor(n / 10);
+  const ones = n % 10;
+  return CN_DIGITS[tens] + '十' + (ones === 0 ? '' : CN_DIGITS[ones]);
 }
 
 function todayStr(){
   const n=new Date();
-  return `${numToCN(n.getFullYear())}年${numToCN(n.getMonth()+1)}月${numToCN(n.getDate())}日`;
+  return yearToCN(n.getFullYear()) + '年' + numToCN(n.getMonth()+1) + '月' + numToCN(n.getDate()) + '日';
 }
 
 function getData(){
-  const by = f_by.value ? numToCN(parseInt(f_by.value)) : '____';
+  const by = f_by.value ? yearToCN(parseInt(f_by.value)) : '____';
   const bm = f_bm.value ? numToCN(parseInt(f_bm.value)) : '__';
   const bd = f_bd.value ? numToCN(parseInt(f_bd.value)) : '__';
   return {
     name:f_name.value.trim()||'（待填）',gender:gRV('gender')||'男',
-    birth:`${by}年${bm}月${bd}日`,
+    birth:by + '年' + bm + '月' + bd + '日',
     calendar:gRV('calendar')||'阳历',shichen:f_sc.value||'（未填）',
     addr:f_addr.value.trim()||'（待填）',lamp:getLampName(),
     duration:gRV('duration')||'一日灯',lampCount:f_lamp_count.value.trim(),
