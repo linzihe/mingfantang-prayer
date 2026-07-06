@@ -570,7 +570,7 @@ function renderCertCanvas(paperW_mm, paperH_mm, scaleFactor) {
   formatted = formatted.concat(seg(NL, false));
   formatted = formatted.concat(seg("弟子诚心叩拜本堂历代祖师，仰求慈光垂护。", false));
   formatted = formatted.concat(seg("今主事弟子于明梵堂坛前，" + (isFlower ? "焚香供花" : "焚香点灯") + "，以此" + (isFlower ? "供花" : "明灯") + "功德，专门回向善信" + dt.name + "。", false));
-  formatted = formatted.concat(seg("愿承灯火光明之力，消除一切阻滞烦忧，福慧增长，所愿和平顺遂。", false));
+  formatted = formatted.concat(seg(isFlower ? "愿承供花芬芳之力，消除一切阻滞烦忧，福慧增长，所愿和平顺遂。" : "愿承灯火光明之力，消除一切阻滞烦忧，福慧增长，所愿和平顺遂。", false));
   formatted = formatted.concat(seg("弟子诚心叩请祖师做主，伏惟垂鉴。", false));
 
   // Footer - bold+楷书 (separate column)
