@@ -190,6 +190,10 @@ input[type="number"]{max-width:72px}
       </select>
       <input type="text" id="f_flower_custom" placeholder="请输入花名" style="display:none;margin-top:4px;width:100%;">
     </div>
+    <div class="form-row">
+      <label>数量</label>
+      <input type="text" id="f_flower_qty" placeholder="如：三朵 / 一束 / 九支" style="max-width:200px;">
+    </div>
   </div>
 
   <div class="form-section">
@@ -301,7 +305,7 @@ const f_name=$('#f_name'), f_lamp=$('#f_lamp'), f_lamp_custom=$('#f_lamp_custom'
 const f_by=$('#f_by'), f_bm=$('#f_bm'), f_bd=$('#f_bd'), f_sc=$('#f_sc');
 const f_paper=$('#f_paper'), f_cw=$('#f_cw'), f_ch=$('#f_ch');
 const f_apikey=$('#f_apikey'), f_model=$('#f_model'), f_lamp_count=$('#f_lamp_count');
-const f_flower=$('#f_flower'), f_flower_custom=$('#f_flower_custom');
+const f_flower=$('#f_flower'), f_flower_custom=$('#f_flower_custom'), f_flower_qty=$('#f_flower_qty');
 const customDiv=$('#custom-size-inputs');
 const btnTest=$('#btn-test'), btnAi=$('#btn-ai'), btnGen=$('#btn-gen'), btnPdf=$('#btn-pdf');
 const apiStatus=$('#api-status');
@@ -330,12 +334,15 @@ function getLampName(){
   return f_lamp.value||'（未选择）';
 }
 function getFlowerName(){
-  if(f_flower.value==='__custom__') return f_flower_custom.value.trim()||'（未填写）';
-  return f_flower.value||'（未选择）';
+  var v = '';
+  if(f_flower.value==='__custom__') v = f_flower_custom.value.trim()||'（未填写）';
+  else v = f_flower.value||'（未选择）';
+  // Strip parenthetical description, keep only flower name
+  return v.replace(/（[^）]*）/g,'').replace(/\([^)]*\)/g,'').trim();
 }
 
 function save(){
-  const d={svcType:getSvcType(), name:f_name.value,gender:gRV('gender')||'男',by:f_by.value,bm:f_bm.value,bd:f_bd.value,calendar:gRV('calendar')||'阳历',sc:f_sc.value,addr:f_addr.value,lamp:f_lamp.value,lampCustom:f_lamp_custom.value,lampCount:f_lamp_count.value,flower:f_flower.value,flowerCustom:f_flower_custom.value,duration:gRV('duration')||'一日灯',prayer:f_prayer.value,paper:f_paper.value,cw:f_cw.value,ch:f_ch.value,apikey:f_apikey.value,model:f_model.value,polishedPrayer};
+  const d={svcType:getSvcType(), name:f_name.value,gender:gRV('gender')||'男',by:f_by.value,bm:f_bm.value,bd:f_bd.value,calendar:gRV('calendar')||'阳历',sc:f_sc.value,addr:f_addr.value,lamp:f_lamp.value,lampCustom:f_lamp_custom.value,lampCount:f_lamp_count.value,flower:f_flower.value,flowerCustom:f_flower_custom.value,flowerQty:f_flower_qty.value,duration:gRV('duration')||'一日灯',prayer:f_prayer.value,paper:f_paper.value,cw:f_cw.value,ch:f_ch.value,apikey:f_apikey.value,model:f_model.value,polishedPrayer};
   try{localStorage.setItem(SK,JSON.stringify(d))}catch(e){}
 }
 function load(){
@@ -350,6 +357,7 @@ function load(){
   if(d.lampCount!==undefined)f_lamp_count.value=d.lampCount;
   if(d.flower!==undefined){f_flower.value=d.flower;if(d.flower==='__custom__'&&d.flowerCustom){f_flower_custom.value=d.flowerCustom;f_flower_custom.style.display=''}}
   if(d.flowerCustom!==undefined)f_flower_custom.value=d.flowerCustom;
+  if(d.flowerQty!==undefined)f_flower_qty.value=d.flowerQty;
   if(d.duration)sRV('duration',d.duration);if(d.prayer!==undefined)f_prayer.value=d.prayer;
   if(d.paper!==undefined){f_paper.value=d.paper;toggleCustom()}
   if(d.cw!==undefined)f_cw.value=d.cw;if(d.ch!==undefined)f_ch.value=d.ch;
@@ -415,7 +423,7 @@ function getData(){
     calendar:gRV('calendar')||'阳历',shichen:f_sc.value||'（未填）',
     addr:f_addr.value.trim()||'（待填）',
     svcType:getSvcType(),
-    lamp:getLampName(), flower:getFlowerName(),
+    lamp:getLampName(), flower:getFlowerName(), flowerQty:f_flower_qty.value.trim(),
     duration:gRV('duration')||'一日灯',lampCount:f_lamp_count.value.trim(),
     prayer:polishedPrayer||f_prayer.value.trim()||'（祈愿内容待填）',
     today:todayStr()
@@ -515,11 +523,19 @@ function renderCertCanvas(paperW_mm, paperH_mm, scaleFactor) {
   // Info - labels bold+楷书, values normal+行楷
   var isFlower = dt.svcType === '花';
   formatted = formatted.concat(seg(isFlower ? "奉花：" : "奉点：", true));
-  formatted = formatted.concat(seg(isFlower ? dt.flower : (dt.lamp + FS + dt.duration), false));
-  if (!isFlower && dt.lampCount) {
-    formatted = formatted.concat(seg(NL, false));
-    formatted = formatted.concat(seg("供灯盏数：", true));
-    formatted = formatted.concat(seg(dt.lampCount, false));
+  if (isFlower) {
+    formatted = formatted.concat(seg(dt.flower, false));
+    if (dt.flowerQty) {
+      formatted = formatted.concat(seg(FS, false));
+      formatted = formatted.concat(seg(dt.flowerQty, false));
+    }
+  } else {
+    formatted = formatted.concat(seg(dt.lamp + FS + dt.duration, false));
+    if (dt.lampCount) {
+      formatted = formatted.concat(seg(NL, false));
+      formatted = formatted.concat(seg("供灯盏数：", true));
+      formatted = formatted.concat(seg(dt.lampCount, false));
+    }
   }
   formatted = formatted.concat(seg(NL, false));
   formatted = formatted.concat(seg("善信：", true));
@@ -553,7 +569,7 @@ function renderCertCanvas(paperW_mm, paperH_mm, scaleFactor) {
   // Closing - all normal+行楷
   formatted = formatted.concat(seg(NL, false));
   formatted = formatted.concat(seg("弟子诚心叩拜本堂历代祖师，仰求慈光垂护。", false));
-  formatted = formatted.concat(seg("今主事弟子于明梵堂坛前，焚香点灯，以此明灯功德，专门回向善信" + dt.name + "。", false));
+  formatted = formatted.concat(seg("今主事弟子于明梵堂坛前，" + (isFlower ? "焚香供花" : "焚香点灯") + "，以此" + (isFlower ? "供花" : "明灯") + "功德，专门回向善信" + dt.name + "。", false));
   formatted = formatted.concat(seg("愿承灯火光明之力，消除一切阻滞烦忧，福慧增长，所愿和平顺遂。", false));
   formatted = formatted.concat(seg("弟子诚心叩请祖师做主，伏惟垂鉴。", false));
 
