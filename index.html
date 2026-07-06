@@ -431,7 +431,7 @@ function renderCertCanvas(paperW_mm, paperH_mm, scaleFactor) {
   // === Data ===
   var raw = getData();
   var dt = {};
-  for (var k in raw) dt[k] = T(raw[k]);
+  for (var k in raw) dt[k] = raw[k];
   var NL = String.fromCharCode(10);
   var FS = String.fromCharCode(0x3000);
 
@@ -441,7 +441,7 @@ function renderCertCanvas(paperW_mm, paperH_mm, scaleFactor) {
   ctx.font = "bold " + titleSz + "px " + ffBold;
   ctx.textAlign = "center";
   ctx.textBaseline = "top";
-  ctx.fillText(T("明梵堂坛前祈福笺"), W / 2, cT);
+  ctx.fillText("明梵堂坛前祈福笺", W / 2, cT);
   var colTop = cT + Math.round(titleSz * 2.2);
 
   // === Build formatted text: array of {char, bold, size} ===
