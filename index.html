@@ -142,9 +142,16 @@ input[type="number"]{max-width:72px}
         <label><input type="radio" name="svc_type" value="花" onchange="toggleSvcType()"> 供花</label>
       </div>
     </div>
+    <div class="form-row" style="margin-top:4px;">
+      <div class="radio-group">
+        <label><input type="radio" name="qf_type" value="个人" checked onchange="toggleQfType()"> 个人祈福</label>
+        <label><input type="radio" name="qf_type" value="团体" onchange="toggleQfType()"> 团体祈福</label>
+      </div>
+    </div>
   </div>
 
-  <div class="form-section">
+  <!-- 个人资料 -->
+  <div class="form-section" id="sec_personal">
     <div class="form-section-title">一、善信基本资料</div>
     <div class="form-row"><label>善信姓名</label><input type="text" id="f_name" placeholder="请输入姓名" autocomplete="off"></div>
     <div class="form-row"><label>性别</label><div class="radio-group"><label><input type="radio" name="gender" value="男" checked> 男</label><label><input type="radio" name="gender" value="女"> 女</label></div></div>
@@ -152,6 +159,14 @@ input[type="number"]{max-width:72px}
     <div class="form-row"><label></label><div class="radio-group"><label><input type="radio" name="calendar" value="阳历" checked> 阳历</label><label><input type="radio" name="calendar" value="农历"> 农历</label></div></div>
     <div class="form-row"><label>时辰</label><select id="f_sc" style="max-width:180px"><option value="">（选填）</option><option>子时</option><option>丑时</option><option>寅时</option><option>卯时</option><option>辰时</option><option>巳时</option><option>午时</option><option>未时</option><option>申时</option><option>酉时</option><option>戌时</option><option>亥时</option></select></div>
     <div class="form-row"><label>详细住址</label><textarea id="f_addr" rows="2" placeholder="请输入详细住址"></textarea></div>
+  </div>
+
+  <!-- 团体资料 -->
+  <div class="form-section" id="sec_group" style="display:none">
+    <div class="form-section-title">一、祈福团体资料</div>
+    <div class="form-row"><label>团体名称</label><input type="text" id="f_group_name" placeholder="如：某某公司 / 某某工作室" autocomplete="off"></div>
+    <div class="form-row"><label>负责人</label><input type="text" id="f_group_leader" placeholder="负责人姓名（选填）" autocomplete="off"></div>
+    <div class="form-row"><label>详细住址</label><textarea id="f_addr2" rows="2" placeholder="团体地址（选填）"></textarea></div>
   </div>
 
   <!-- 供灯设置 -->
@@ -306,6 +321,7 @@ const f_by=$('#f_by'), f_bm=$('#f_bm'), f_bd=$('#f_bd'), f_sc=$('#f_sc');
 const f_paper=$('#f_paper'), f_cw=$('#f_cw'), f_ch=$('#f_ch');
 const f_apikey=$('#f_apikey'), f_model=$('#f_model'), f_lamp_count=$('#f_lamp_count');
 const f_flower=$('#f_flower'), f_flower_custom=$('#f_flower_custom'), f_flower_qty=$('#f_flower_qty');
+const f_group_name=$('#f_group_name'), f_group_leader=$('#f_group_leader'), f_addr2=$('#f_addr2');
 const customDiv=$('#custom-size-inputs');
 const btnTest=$('#btn-test'), btnAi=$('#btn-ai'), btnGen=$('#btn-gen'), btnPdf=$('#btn-pdf');
 const apiStatus=$('#api-status');
@@ -342,16 +358,20 @@ function getFlowerName(){
 }
 
 function save(){
-  const d={svcType:getSvcType(), name:f_name.value,gender:gRV('gender')||'男',by:f_by.value,bm:f_bm.value,bd:f_bd.value,calendar:gRV('calendar')||'阳历',sc:f_sc.value,addr:f_addr.value,lamp:f_lamp.value,lampCustom:f_lamp_custom.value,lampCount:f_lamp_count.value,flower:f_flower.value,flowerCustom:f_flower_custom.value,flowerQty:f_flower_qty.value,duration:gRV('duration')||'一日灯',prayer:f_prayer.value,paper:f_paper.value,cw:f_cw.value,ch:f_ch.value,apikey:f_apikey.value,model:f_model.value,polishedPrayer};
+  const d={qfType:getQfType(), svcType:getSvcType(), name:f_name.value,gender:gRV('gender')||'男',by:f_by.value,bm:f_bm.value,bd:f_bd.value,calendar:gRV('calendar')||'阳历',sc:f_sc.value,addr:f_addr.value,groupName:f_group_name.value,groupLeader:f_group_leader.value,groupAddr:f_addr2.value,lamp:f_lamp.value,lampCustom:f_lamp_custom.value,lampCount:f_lamp_count.value,flower:f_flower.value,flowerCustom:f_flower_custom.value,flowerQty:f_flower_qty.value,duration:gRV('duration')||'一日灯',prayer:f_prayer.value,paper:f_paper.value,cw:f_cw.value,ch:f_ch.value,apikey:f_apikey.value,model:f_model.value,polishedPrayer};
   try{localStorage.setItem(SK,JSON.stringify(d))}catch(e){}
 }
 function load(){
   try{const r=localStorage.getItem(SK);if(!r)return;const d=JSON.parse(r);
+  if(d.qfType!==undefined){sRV('qf_type',d.qfType);toggleQfType();}
   if(d.svcType!==undefined){sRV('svc_type',d.svcType);toggleSvcType();}
   if(d.name!==undefined)f_name.value=d.name;if(d.gender)sRV('gender',d.gender);
   if(d.by!==undefined)f_by.value=d.by;if(d.bm!==undefined)f_bm.value=d.bm;if(d.bd!==undefined)f_bd.value=d.bd;
   if(d.calendar)sRV('calendar',d.calendar);if(d.sc!==undefined)f_sc.value=d.sc;
   if(d.addr!==undefined)f_addr.value=d.addr;
+  if(d.groupName!==undefined)f_group_name.value=d.groupName;
+  if(d.groupLeader!==undefined)f_group_leader.value=d.groupLeader;
+  if(d.groupAddr!==undefined)f_addr2.value=d.groupAddr;
   if(d.lamp!==undefined){f_lamp.value=d.lamp;if(d.lamp==='__custom__'&&d.lampCustom){f_lamp_custom.value=d.lampCustom;f_lamp_custom.style.display=''}}
   if(d.lampCustom!==undefined)f_lamp_custom.value=d.lampCustom;
   if(d.lampCount!==undefined)f_lamp_count.value=d.lampCount;
@@ -379,6 +399,13 @@ function toggleSvcType(){
   document.getElementById('sec_flower').style.display = isFlower ? '' : 'none';
   save();
 }
+function toggleQfType(){
+  var isGroup = gRV('qf_type') === '团体';
+  document.getElementById('sec_personal').style.display = isGroup ? 'none' : '';
+  document.getElementById('sec_group').style.display = isGroup ? '' : 'none';
+  save();
+}
+function getQfType(){ return gRV('qf_type')||'个人'; }
 function showToast(msg,d=2500){const el=$('#toast');el.textContent=msg;el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),d)}
 
 function getPaperMM(){
@@ -420,14 +447,19 @@ function toVertBracket(text) {
 }
 
 function getData(){
+  const isGroup = getQfType() === '团体';
   const by = f_by.value ? yearToCN(parseInt(f_by.value)) : '____';
   const bm = f_bm.value ? numToCN(parseInt(f_bm.value)) : '__';
   const bd = f_bd.value ? numToCN(parseInt(f_bd.value)) : '__';
   return {
-    name:toVertBracket(f_name.value.trim())||'﹁待填﹂',gender:gRV('gender')||'男',
-    birth:by + '年' + bm + '月' + bd + '日',
-    calendar:gRV('calendar')||'阳历',shichen:f_sc.value||'',
-    addr:toVertBracket(f_addr.value.trim())||'﹁待填﹂',
+    qfType: getQfType(),
+    name:toVertBracket(isGroup ? (f_group_name.value.trim()||'﹁待填﹂') : (f_name.value.trim()||'﹁待填﹂')),
+    gender:isGroup ? '' : (gRV('gender')||'男'),
+    birth:isGroup ? '' : (by + '年' + bm + '月' + bd + '日'),
+    calendar:isGroup ? '' : (gRV('calendar')||'阳历'),
+    shichen:isGroup ? '' : (f_sc.value||''),
+    groupLeader: isGroup ? toVertBracket(f_group_leader.value.trim()) : '',
+    addr:toVertBracket(isGroup ? (f_addr2.value.trim()||'') : (f_addr.value.trim()||'﹁待填﹂')),
     svcType:getSvcType(),
     lamp:getLampName(), flower:getFlowerName(), flowerQty:toVertBracket(f_flower_qty.value.trim()),
     duration:gRV('duration')||'一日灯',lampCount:toVertBracket(f_lamp_count.value.trim()),
@@ -528,6 +560,7 @@ function renderCertCanvas(paperW_mm, paperH_mm, scaleFactor) {
 
   // Info - labels bold+楷书, values normal+行楷
   var isFlower = dt.svcType === '花';
+  var isGroup = dt.qfType === '团体';
   formatted = formatted.concat(seg(isFlower ? "奉花：" : "奉点：", true));
   if (isFlower) {
     formatted = formatted.concat(seg(dt.flower, false));
@@ -544,24 +577,39 @@ function renderCertCanvas(paperW_mm, paperH_mm, scaleFactor) {
     }
   }
   formatted = formatted.concat(seg(NL, false));
-  formatted = formatted.concat(seg("善信：", true));
-  formatted = formatted.concat(seg(dt.name, false));
-  formatted = formatted.concat(seg(FS, false));
-  formatted = formatted.concat(seg("性别：", true));
-  formatted = formatted.concat(seg(dt.gender, false));
-  formatted = formatted.concat(seg(NL, false));
-  formatted = formatted.concat(seg("生辰：", true));
-  formatted = formatted.concat(seg(dt.birth, false));
-  formatted = formatted.concat(seg(FS, false));
-  formatted = formatted.concat(seg(dt.calendar, false));
-  if (dt.shichen) {
+  if (isGroup) {
+    formatted = formatted.concat(seg("祈福团体：", true));
+    formatted = formatted.concat(seg(dt.name, false));
+    if (dt.groupLeader) {
+      formatted = formatted.concat(seg(NL, false));
+      formatted = formatted.concat(seg("负责人：", true));
+      formatted = formatted.concat(seg(dt.groupLeader, false));
+    }
+    if (dt.addr) {
+      formatted = formatted.concat(seg(NL, false));
+      formatted = formatted.concat(seg("地址：", true));
+      formatted = formatted.concat(seg(dt.addr, false));
+    }
+  } else {
+    formatted = formatted.concat(seg("善信：", true));
+    formatted = formatted.concat(seg(dt.name, false));
+    formatted = formatted.concat(seg(FS, false));
+    formatted = formatted.concat(seg("性别：", true));
+    formatted = formatted.concat(seg(dt.gender, false));
     formatted = formatted.concat(seg(NL, false));
-    formatted = formatted.concat(seg("时辰：", true));
-    formatted = formatted.concat(seg(dt.shichen, false));
+    formatted = formatted.concat(seg("生辰：", true));
+    formatted = formatted.concat(seg(dt.birth, false));
+    formatted = formatted.concat(seg(FS, false));
+    formatted = formatted.concat(seg(dt.calendar, false));
+    if (dt.shichen) {
+      formatted = formatted.concat(seg(NL, false));
+      formatted = formatted.concat(seg("时辰：", true));
+      formatted = formatted.concat(seg(dt.shichen, false));
+    }
+    formatted = formatted.concat(seg(NL, false));
+    formatted = formatted.concat(seg("住址：", true));
+    formatted = formatted.concat(seg(dt.addr, false));
   }
-  formatted = formatted.concat(seg(NL, false));
-  formatted = formatted.concat(seg("住址：", true));
-  formatted = formatted.concat(seg(dt.addr, false));
 
   if (dt.lampCount) {
     formatted = formatted.concat(seg(NL, false));
@@ -577,7 +625,7 @@ function renderCertCanvas(paperW_mm, paperH_mm, scaleFactor) {
   // Closing - all normal+行楷
   formatted = formatted.concat(seg(NL, false));
   formatted = formatted.concat(seg("弟子诚心叩拜本堂历代祖师，仰求慈光垂护。", false));
-  formatted = formatted.concat(seg("今主事弟子于明梵堂坛前，" + (isFlower ? "焚香供花" : "焚香点灯") + "，以此" + (isFlower ? "供花" : "明灯") + "功德，专门回向善信" + dt.name + "。", false));
+  formatted = formatted.concat(seg("今主事弟子于明梵堂坛前，" + (isFlower ? "焚香供花" : "焚香点灯") + "，以此" + (isFlower ? "供花" : "明灯") + "功德，专门回向" + (isGroup ? "祈福团体" + dt.name : "善信" + dt.name) + "。", false));
   formatted = formatted.concat(seg(isFlower ? "愿承供花芬芳之力，消除一切阻滞烦忧，福慧增长，所愿和平顺遂。" : "愿承灯火光明之力，消除一切阻滞烦忧，福慧增长，所愿和平顺遂。", false));
   formatted = formatted.concat(seg("弟子诚心叩请祖师做主，伏惟垂鉴。", false));
 
