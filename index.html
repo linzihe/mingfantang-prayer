@@ -330,13 +330,13 @@ function gRV(n){const e=$$(`input[name="${n}"]:checked`)[0];return e?e.value:''}
 function sRV(n,v){$$(`input[name="${n}"]`).forEach(r=>{r.checked=(r.value===v)})}
 function getSvcType(){ return gRV('svc_type')||'灯'; }
 function getLampName(){
-  if(f_lamp.value==='__custom__') return f_lamp_custom.value.trim()||'（未填写）';
-  return f_lamp.value||'（未选择）';
+  if(f_lamp.value==='__custom__') return f_lamp_custom.value.trim()||'﹁未填写﹂';
+  return f_lamp.value||'﹁未选择﹂';
 }
 function getFlowerName(){
   var v = '';
-  if(f_flower.value==='__custom__') v = f_flower_custom.value.trim()||'（未填写）';
-  else v = f_flower.value||'（未选择）';
+  if(f_flower.value==='__custom__') v = f_flower_custom.value.trim()||'﹁未填写﹂';
+  else v = f_flower.value||'﹁未选择﹂';
   // Strip parenthetical description, keep only flower name
   return v.replace(/（[^）]*）/g,'').replace(/\([^)]*\)/g,'').trim();
 }
@@ -413,19 +413,25 @@ function todayStr(){
   return yearToCN(n.getFullYear()) + '年' + numToCN(n.getMonth()+1) + '月' + numToCN(n.getDate()) + '日';
 }
 
+// Convert modern parentheses to vertical brackets for vertical writing
+function toVertBracket(text) {
+  if (!text) return text;
+  return text.replace(/\(/g,'﹁').replace(/\)/g,'﹂').replace(/（/g,'﹁').replace(/）/g,'﹂');
+}
+
 function getData(){
   const by = f_by.value ? yearToCN(parseInt(f_by.value)) : '____';
   const bm = f_bm.value ? numToCN(parseInt(f_bm.value)) : '__';
   const bd = f_bd.value ? numToCN(parseInt(f_bd.value)) : '__';
   return {
-    name:f_name.value.trim()||'（待填）',gender:gRV('gender')||'男',
+    name:toVertBracket(f_name.value.trim())||'﹁待填﹂',gender:gRV('gender')||'男',
     birth:by + '年' + bm + '月' + bd + '日',
-    calendar:gRV('calendar')||'阳历',shichen:f_sc.value||'（未填）',
-    addr:f_addr.value.trim()||'（待填）',
+    calendar:gRV('calendar')||'阳历',shichen:f_sc.value||'',
+    addr:toVertBracket(f_addr.value.trim())||'﹁待填﹂',
     svcType:getSvcType(),
-    lamp:getLampName(), flower:getFlowerName(), flowerQty:f_flower_qty.value.trim(),
-    duration:gRV('duration')||'一日灯',lampCount:f_lamp_count.value.trim(),
-    prayer:polishedPrayer||f_prayer.value.trim()||'（祈愿内容待填）',
+    lamp:getLampName(), flower:getFlowerName(), flowerQty:toVertBracket(f_flower_qty.value.trim()),
+    duration:gRV('duration')||'一日灯',lampCount:toVertBracket(f_lamp_count.value.trim()),
+    prayer:toVertBracket(polishedPrayer||f_prayer.value.trim())||'﹁祈愿内容待填﹂',
     today:todayStr()
   };
 }
@@ -548,9 +554,11 @@ function renderCertCanvas(paperW_mm, paperH_mm, scaleFactor) {
   formatted = formatted.concat(seg(dt.birth, false));
   formatted = formatted.concat(seg(FS, false));
   formatted = formatted.concat(seg(dt.calendar, false));
-  formatted = formatted.concat(seg(NL, false));
-  formatted = formatted.concat(seg("时辰：", true));
-  formatted = formatted.concat(seg(dt.shichen, false));
+  if (dt.shichen) {
+    formatted = formatted.concat(seg(NL, false));
+    formatted = formatted.concat(seg("时辰：", true));
+    formatted = formatted.concat(seg(dt.shichen, false));
+  }
   formatted = formatted.concat(seg(NL, false));
   formatted = formatted.concat(seg("住址：", true));
   formatted = formatted.concat(seg(dt.addr, false));
