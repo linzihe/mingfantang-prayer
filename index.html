@@ -135,11 +135,20 @@ input[type="number"]{max-width:72px}
   <h1>明梵堂法务打单系统<small>MING FAN TANG</small></h1>
 
   <div class="form-section">
-    <div class="form-section-title">法务类型</div>
+    <div class="form-section-title">坛 · 法务类型</div>
     <div class="form-row">
+      <label>坛</label>
+      <div class="radio-group">
+        <label><input type="radio" name="altar_type" value="祖师坛" checked onchange="toggleAltarType()"> 祖师坛</label>
+        <label><input type="radio" name="altar_type" value="象神坛" onchange="toggleAltarType()"> 象神坛（Ganesha）</label>
+      </div>
+    </div>
+    <div class="form-row" style="margin-top:4px;">
+      <label>法务</label>
       <div class="radio-group">
         <label><input type="radio" name="svc_type" value="灯" checked onchange="toggleSvcType()"> 供灯</label>
         <label><input type="radio" name="svc_type" value="花" onchange="toggleSvcType()"> 供花</label>
+        <label><input type="radio" name="svc_type" value="香" onchange="toggleSvcType()"> 供香</label>
       </div>
     </div>
     <div class="form-row" style="margin-top:4px;">
@@ -211,6 +220,30 @@ input[type="number"]{max-width:72px}
     </div>
   </div>
 
+  <!-- 供香设置 -->
+  <div class="form-section" id="sec_incense" style="display:none">
+    <div class="form-section-title">二、奉香设置</div>
+    <div class="form-row">
+      <label>香品</label>
+      <select id="f_incense" onchange="document.getElementById('f_incense_custom').style.display=this.value==='__custom__'?'':'none'">
+        <option value="">— 请选择 —</option>
+        <option>檀香</option><option>沉香</option><option>龙涎香</option><option>安息香</option><option>乳香</option><option>苏合香</option><option>降真香</option><option>丁香</option><option>郁金香</option>
+        <option value="__custom__">✎ 其他（自行输入）</option>
+      </select>
+      <input type="text" id="f_incense_custom" placeholder="请输入香品名" style="display:none;margin-top:4px;width:100%;">
+    </div>
+    <div class="form-row">
+      <label>供香数量</label>
+      <input type="text" id="f_incense_qty" placeholder="如：三支 / 一炉 / 九支" style="max-width:200px;">
+    </div>
+    <div class="form-row">
+      <label>供香时长</label>
+      <select id="f_incense_duration">
+        <option value="一炷香">一炷香</option><option value="三炷香">三炷香</option><option value="七炷香">七炷香</option><option value="长香">长香（整日供奉）</option>
+      </select>
+    </div>
+  </div>
+
   <div class="form-section">
     <div class="form-section-title">三、善信原始祈愿</div>
     <textarea id="f_prayer" rows="4" placeholder="请输入善信原始祈愿文本（可用白话文，点击AI润色自动转化为雅致疏文）"></textarea>
@@ -224,7 +257,7 @@ input[type="number"]{max-width:72px}
 
   <div class="form-section">
     <div class="form-section-title">五、DeepSeek API 设置</div>
-    <div class="form-row"><label>API Key</label><input type="password" id="f_apikey" placeholder="sk-..." autocomplete="off"></div>
+    <div class="form-row"><label>API Key</label><input type="text" id="f_apikey" placeholder="sk-..." autocomplete="on" style="letter-spacing:0.05em"></div>
     <div class="form-row"><label>模型</label><select id="f_model"><option value="deepseek-chat">deepseek-chat</option></select><button class="btn btn-outline btn-sm" id="btn-test" type="button">测试连通性</button><span id="api-status"></span></div>
   </div>
 
@@ -321,6 +354,7 @@ const f_by=$('#f_by'), f_bm=$('#f_bm'), f_bd=$('#f_bd'), f_sc=$('#f_sc');
 const f_paper=$('#f_paper'), f_cw=$('#f_cw'), f_ch=$('#f_ch');
 const f_apikey=$('#f_apikey'), f_model=$('#f_model'), f_lamp_count=$('#f_lamp_count');
 const f_flower=$('#f_flower'), f_flower_custom=$('#f_flower_custom'), f_flower_qty=$('#f_flower_qty');
+const f_incense=$('#f_incense'), f_incense_custom=$('#f_incense_custom'), f_incense_qty=$('#f_incense_qty'), f_incense_duration=$('#f_incense_duration');
 const f_group_name=$('#f_group_name'), f_group_leader=$('#f_group_leader'), f_addr2=$('#f_addr2');
 const customDiv=$('#custom-size-inputs');
 const btnTest=$('#btn-test'), btnAi=$('#btn-ai'), btnGen=$('#btn-gen'), btnPdf=$('#btn-pdf');
@@ -358,11 +392,12 @@ function getFlowerName(){
 }
 
 function save(){
-  const d={qfType:getQfType(), svcType:getSvcType(), name:f_name.value,gender:gRV('gender')||'男',by:f_by.value,bm:f_bm.value,bd:f_bd.value,calendar:gRV('calendar')||'阳历',sc:f_sc.value,addr:f_addr.value,groupName:f_group_name.value,groupLeader:f_group_leader.value,groupAddr:f_addr2.value,lamp:f_lamp.value,lampCustom:f_lamp_custom.value,lampCount:f_lamp_count.value,flower:f_flower.value,flowerCustom:f_flower_custom.value,flowerQty:f_flower_qty.value,duration:gRV('duration')||'一日灯',prayer:f_prayer.value,paper:f_paper.value,cw:f_cw.value,ch:f_ch.value,apikey:f_apikey.value,model:f_model.value,polishedPrayer};
+  const d={altarType:getAltarType(),qfType:getQfType(), svcType:getSvcType(), name:f_name.value,gender:gRV('gender')||'男',by:f_by.value,bm:f_bm.value,bd:f_bd.value,calendar:gRV('calendar')||'阳历',sc:f_sc.value,addr:f_addr.value,groupName:f_group_name.value,groupLeader:f_group_leader.value,groupAddr:f_addr2.value,lamp:f_lamp.value,lampCustom:f_lamp_custom.value,lampCount:f_lamp_count.value,flower:f_flower.value,flowerCustom:f_flower_custom.value,flowerQty:f_flower_qty.value,incense:f_incense.value,incenseCustom:f_incense_custom.value,incenseQty:f_incense_qty.value,incenseDuration:f_incense_duration.value,duration:gRV('duration')||'一日灯',prayer:f_prayer.value,paper:f_paper.value,cw:f_cw.value,ch:f_ch.value,apikey:f_apikey.value,model:f_model.value,polishedPrayer};
   try{localStorage.setItem(SK,JSON.stringify(d))}catch(e){}
 }
 function load(){
   try{const r=localStorage.getItem(SK);if(!r)return;const d=JSON.parse(r);
+  if(d.altarType!==undefined){sRV('altar_type',d.altarType);toggleAltarType();}
   if(d.qfType!==undefined){sRV('qf_type',d.qfType);toggleQfType();}
   if(d.svcType!==undefined){sRV('svc_type',d.svcType);toggleSvcType();}
   if(d.name!==undefined)f_name.value=d.name;if(d.gender)sRV('gender',d.gender);
@@ -378,6 +413,10 @@ function load(){
   if(d.flower!==undefined){f_flower.value=d.flower;if(d.flower==='__custom__'&&d.flowerCustom){f_flower_custom.value=d.flowerCustom;f_flower_custom.style.display=''}}
   if(d.flowerCustom!==undefined)f_flower_custom.value=d.flowerCustom;
   if(d.flowerQty!==undefined)f_flower_qty.value=d.flowerQty;
+  if(d.incense!==undefined){f_incense.value=d.incense;if(d.incense==='__custom__'&&d.incenseCustom){f_incense_custom.value=d.incenseCustom;f_incense_custom.style.display=''}}
+  if(d.incenseCustom!==undefined)f_incense_custom.value=d.incenseCustom;
+  if(d.incenseQty!==undefined)f_incense_qty.value=d.incenseQty;
+  if(d.incenseDuration!==undefined)f_incense_duration.value=d.incenseDuration;
   if(d.duration)sRV('duration',d.duration);if(d.prayer!==undefined)f_prayer.value=d.prayer;
   if(d.paper!==undefined){f_paper.value=d.paper;toggleCustom()}
   if(d.cw!==undefined)f_cw.value=d.cw;if(d.ch!==undefined)f_ch.value=d.ch;
@@ -386,26 +425,48 @@ function load(){
   }catch(e){}
 }
 document.addEventListener('input',save);
-document.addEventListener('change',()=>{save();toggleCustom()});
+document.addEventListener('change',()=>{save();toggleCustom();refreshPreview()});
+
+/* ===========================================================
+   AUTO-REFRESH PREVIEW
+   =========================================================== */
+function refreshPreview(){
+  if(previewImg){
+    showPreview();
+  }
+}
 
 /* ===========================================================
    HELPERS
    =========================================================== */
 function toggleCustom(){customDiv.classList.toggle('show',f_paper.value==='custom')}
 
-function toggleSvcType(){
-  var isFlower = gRV('svc_type') === '花';
-  document.getElementById('sec_lamp').style.display = isFlower ? 'none' : '';
-  document.getElementById('sec_flower').style.display = isFlower ? '' : 'none';
+function toggleAltarType(){
   save();
+  refreshPreview();
+}
+
+function toggleSvcType(){
+  var svc = getSvcType();
+  document.getElementById('sec_lamp').style.display = svc === '灯' ? '' : 'none';
+  document.getElementById('sec_flower').style.display = svc === '花' ? '' : 'none';
+  document.getElementById('sec_incense').style.display = svc === '香' ? '' : 'none';
+  save();
+  refreshPreview();
 }
 function toggleQfType(){
   var isGroup = gRV('qf_type') === '团体';
   document.getElementById('sec_personal').style.display = isGroup ? 'none' : '';
   document.getElementById('sec_group').style.display = isGroup ? '' : 'none';
   save();
+  refreshPreview();
 }
 function getQfType(){ return gRV('qf_type')||'个人'; }
+function getAltarType(){ return gRV('altar_type')||'祖师坛'; }
+function getIncenseName(){
+  if(f_incense.value==='__custom__') return f_incense_custom.value.trim()||'﹁未填写﹂';
+  return f_incense.value||'﹁未选择﹂';
+}
 function showToast(msg,d=2500){const el=$('#toast');el.textContent=msg;el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),d)}
 
 function getPaperMM(){
@@ -448,10 +509,13 @@ function toVertBracket(text) {
 
 function getData(){
   const isGroup = getQfType() === '团体';
+  const isGanesha = getAltarType() === '象神坛';
   const by = f_by.value ? yearToCN(parseInt(f_by.value)) : '____';
   const bm = f_bm.value ? numToCN(parseInt(f_bm.value)) : '__';
   const bd = f_bd.value ? numToCN(parseInt(f_bd.value)) : '__';
   return {
+    altarType: getAltarType(),
+    isGanesha: isGanesha,
     qfType: getQfType(),
     name:toVertBracket(isGroup ? (f_group_name.value.trim()||'﹁待填﹂') : (f_name.value.trim()||'﹁待填﹂')),
     gender:isGroup ? '' : (gRV('gender')||'男'),
@@ -462,6 +526,7 @@ function getData(){
     addr:toVertBracket(isGroup ? (f_addr2.value.trim()||'') : (f_addr.value.trim()||'﹁待填﹂')),
     svcType:getSvcType(),
     lamp:getLampName(), flower:getFlowerName(), flowerQty:toVertBracket(f_flower_qty.value.trim()),
+    incense:getIncenseName(), incenseQty:toVertBracket(f_incense_qty.value.trim()), incenseDuration:f_incense_duration.value||'一炷香',
     duration:gRV('duration')||'一日灯',lampCount:toVertBracket(f_lamp_count.value.trim()),
     prayer:toVertBracket(polishedPrayer||f_prayer.value.trim())||'﹁祈愿内容待填﹂',
     today:todayStr()
@@ -544,7 +609,11 @@ function renderCertCanvas(paperW_mm, paperH_mm, scaleFactor) {
   ctx.font = "bold " + titleSz + "px " + ffBold;
   ctx.textAlign = "center";
   ctx.textBaseline = "top";
-  ctx.fillText(T("明梵堂坛前祈福笺"), W / 2, cT);
+  if (dt.isGanesha) {
+    ctx.fillText(T("明梵堂象神坛祈福笺"), W / 2, cT);
+  } else {
+    ctx.fillText(T("明梵堂坛前祈福笺"), W / 2, cT);
+  }
   var colTop = cT + Math.round(titleSz * 2.2);
 
   // === Build formatted text: array of {char, bold, size} ===
@@ -560,9 +629,20 @@ function renderCertCanvas(paperW_mm, paperH_mm, scaleFactor) {
 
   // Info - labels bold+楷书, values normal+行楷
   var isFlower = dt.svcType === '花';
+  var isIncense = dt.svcType === '香';
   var isGroup = dt.qfType === '团体';
-  formatted = formatted.concat(seg(isFlower ? "奉花：" : "奉点：", true));
-  if (isFlower) {
+  var isGanesha = dt.isGanesha;
+  formatted = formatted.concat(seg(isGanesha ? (isIncense ? "奉香：" : isFlower ? "奉花：" : "奉点：") : (isIncense ? "奉香：" : isFlower ? "奉花：" : "奉点："), true));
+  if (isIncense) {
+    formatted = formatted.concat(seg(dt.incense, false));
+    if (dt.incenseQty) {
+      formatted = formatted.concat(seg(FS, false));
+      formatted = formatted.concat(seg(dt.incenseQty, false));
+    }
+    formatted = formatted.concat(seg(NL, false));
+    formatted = formatted.concat(seg("供香时长：", true));
+    formatted = formatted.concat(seg(dt.incenseDuration, false));
+  } else if (isFlower) {
     formatted = formatted.concat(seg(dt.flower, false));
     if (dt.flowerQty) {
       formatted = formatted.concat(seg(FS, false));
@@ -622,12 +702,29 @@ function renderCertCanvas(paperW_mm, paperH_mm, scaleFactor) {
   formatted = formatted.concat(seg("祈愿：", true));
   formatted = formatted.concat(seg(dt.prayer.replace(/\n/g, ""), false));
 
-  // Closing - all normal+行楷
+  // Closing - all normal+行楷 — varies by altar type
   formatted = formatted.concat(seg(NL, false));
-  formatted = formatted.concat(seg("弟子诚心叩拜本堂历代祖师，仰求慈光垂护。", false));
-  formatted = formatted.concat(seg("今主事弟子于明梵堂坛前，" + (isFlower ? "焚香供花" : "焚香点灯") + "，以此" + (isFlower ? "供花" : "明灯") + "功德，专门回向" + (isGroup ? "祈福团体" + dt.name : "善信" + dt.name) + "。", false));
-  formatted = formatted.concat(seg(isFlower ? "愿承供花芬芳之力，消除一切阻滞烦忧，福慧增长，所愿和平顺遂。" : "愿承灯火光明之力，消除一切阻滞烦忧，福慧增长，所愿和平顺遂。", false));
-  formatted = formatted.concat(seg("弟子诚心叩请祖师做主，伏惟垂鉴。", false));
+  if (isGanesha) {
+    // 象神坛结尾语（印度教仪轨）
+    formatted = formatted.concat(seg("Om Gam Ganapataye Namah", false));
+    formatted = formatted.concat(seg(NL, false));
+    formatted = formatted.concat(seg(T("信众虔诚祈请象神Ganesha垂赐慈恩。"), false));
+    var svcActGanesha = isIncense ? "焚香供奉" : isFlower ? "献花供奉" : "燃灯供奉";
+    var svcObjGanesha = isIncense ? "供香" : isFlower ? "供花" : "明灯";
+    formatted = formatted.concat(seg(T("今于明梵堂象神坛前，" + svcActGanesha + "，以此" + svcObjGanesha + "功德，专门回向" + (isGroup ? "祈福团体" + dt.name : "善信" + dt.name) + "。"), false));
+    var blessingGanesha = isIncense ? "愿承供香芬芳之力" : isFlower ? "愿承供花芬芳之力" : "愿承灯火光明之力";
+    formatted = formatted.concat(seg(T(blessingGanesha + "，消除一切障碍与阻滞，智慧增长，所愿和平顺遂。"), false));
+    formatted = formatted.concat(seg(T("Om Gam Ganapataye Namah。信众虔诚叩请象神做主，伏惟垂鉴。"), false));
+  } else {
+    // 祖师坛结尾语（国内法教仪轨）
+    formatted = formatted.concat(seg("弟子诚心叩拜本堂历代祖师，仰求慈光垂护。", false));
+    var svcAct = isIncense ? "焚香供奉" : isFlower ? "焚香供花" : "焚香点灯";
+    var svcObj = isIncense ? "供香" : isFlower ? "供花" : "明灯";
+    formatted = formatted.concat(seg(T("今主事弟子于明梵堂坛前，" + svcAct + "，以此" + svcObj + "功德，专门回向" + (isGroup ? "祈福团体" + dt.name : "善信" + dt.name) + "。"), false));
+    var blessing = isIncense ? "愿承供香芬芳之力" : isFlower ? "愿承供花芬芳之力" : "愿承灯火光明之力";
+    formatted = formatted.concat(seg(T(blessing + "，消除一切阻滞烦忧，福慧增长，所愿和平顺遂。"), false));
+    formatted = formatted.concat(seg("弟子诚心叩请祖师做主，伏惟垂鉴。", false));
+  }
 
   // Footer - bold+楷书 (separate column)
   var footerFormatted = [];
@@ -824,11 +921,14 @@ async function aiPolish(){
   btnAi.disabled=true;btnAi.innerHTML='<span class="spinner"></span>AI润色中...';
   showToast('正在请求AI润色，请稍候...');
 
-  const sys=`你是专业玄门疏文润色师，任务：
+  const isGanesha = getAltarType() === '象神坛';
+  const sysBase = `你是专业玄门疏文润色师，任务：
 1.保留善信原本祈愿的核心诉求，不擅自改变善信本意；
-2.将现代白话，润色为中式传统疏文文雅繁体字句；
-3.严格遵守规则：禁止出现任何试图强行操控、强迫他人心意的语句。若原文有牵涉感情控制、强迫别人行事，必须改写为「化解彼此隔阂、消释芥蒂、愿缘分平和顺遂，彼此心甘情愿」之类中正表述。
-4.全文输出简体中文，行文温和中正，适合写在祈福笺祈愿栏，不要多余解释，只输出润色完成的祈愿正文。`;
+2.严格遵守规则：禁止出现任何试图强行操控、强迫他人心意的语句。若原文有牵涉感情控制、强迫别人行事，必须改写为「化解彼此隔阂、消释芥蒂、愿缘分平和顺遂，彼此心甘情愿」之类中正表述。
+3.全文输出简体中文，行文温和中正，适合写在祈福笺祈愿栏，不要多余解释，只输出润色完成的祈愿正文。`;
+  const sys = isGanesha
+    ? sysBase + `\n4.此祈福笺供奉象神Ganesha（印度教），请将善信祈愿润色为符合印度教仪轨的文雅表达，在祈愿文开头加入真言「Om Gam Ganapataye Namah」，行文风格偏向印度教虔诚祈祷的表达方式，使用诸如「祈请象神慈恩垂护」「消除一切障碍」「智慧增长」等印度教语境表述。`
+    : sysBase + `\n4.将现代白话，润色为中式传统疏文文雅繁体字句。`;
 
   try{
     const r=await fetch('https://api.deepseek.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${key}`},body:JSON.stringify({model:f_model.value||'deepseek-chat',messages:[{role:'system',content:sys},{role:'user',content:`用户原始愿望：${raw}`}],temperature:0.7,max_tokens:2048})});
@@ -867,7 +967,7 @@ async function init(){
 init();
 // Extra: ensure API key saves on blur (belt-and-suspenders)
 f_apikey.addEventListener('blur', save);
-console.log('%c明梵堂祈福笺 v4 — 数据自动保存至浏览器','color:#c9a84c;font-size:16px;');
+console.log('%c明梵堂祈福笺 v5 — 含象神坛+供香法务 — 数据自动保存至浏览器','color:#c9a84c;font-size:16px;');
 })();
 </script>
 </body>
