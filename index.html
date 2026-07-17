@@ -227,7 +227,37 @@ input[type="number"]{max-width:72px}
       <label>香品</label>
       <select id="f_incense" onchange="document.getElementById('f_incense_custom').style.display=this.value==='__custom__'?'':'none'">
         <option value="">— 请选择 —</option>
-        <option>檀香</option><option>沉香</option><option>龙涎香</option><option>安息香</option><option>乳香</option><option>苏合香</option><option>降真香</option><option>丁香</option><option>郁金香</option>
+        <optgroup label="【S级·首选】">
+          <option>海南降真香 — 通用基础款·调和气场·广积福德</option>
+          <option>佛陀祈福香（Blessing Buddha）— 全维度万能·无偏向限制</option>
+        </optgroup>
+        <optgroup label="【A级·重点推荐】">
+          <option>玫瑰香（Rose）— 软化对立·消融冷战·亲密感情修复</option>
+          <option>老山檀香（Chandan）— 事业贵人·消解排挤·稳固正财</option>
+          <option>琥珀香（Ámbar）— 锁住福运·扭转低迷·稳固机缘</option>
+          <option>情缘香（Kama Sutra）— 加深羁绊·修复裂痕·长期缘分修复</option>
+          <option>沉香木香（Madera De Agar）— 厚重聚福·化解大阻滞·高端转运</option>
+          <option>茉莉香（Jasmine）— 拓宽人缘·提升亲和·拓展新机缘</option>
+          <option>白鼠尾草香（Salvia Blanca）— 强力净化·斩烂桃花·清厚重负能</option>
+          <option>财富香（Money）— 拓宽财路·多元收入·主动招财</option>
+          <option>事业顺遂香（Business Success）— 提升客源·晋升机遇·项目成功率</option>
+          <option>龙血香（Dragons Blood）— 阻隔小人·化解口舌·护身挡煞</option>
+        </optgroup>
+        <optgroup label="【B级·按需推荐】">
+          <option>栀子花香（Gardenia）— 柔和日常人缘·化解微小口舌</option>
+          <option>椰子香（Coconut）— 调和杂乱气场·抚平细碎不顺</option>
+          <option>桂花香（Osmanto）— 家庭和顺·调和争执·稳定家运</option>
+          <option>圣木香（Palo Santo）— 深度净化空间·清理低频负能</option>
+          <option>艾草香（Ajenjo）— 贴身护身·驱散杂扰·缓解多梦不安</option>
+          <option>鲜薄荷香（Menta Fresca）— 快速平复暴躁焦虑·清心降火</option>
+          <option>清泉香（Agua Fresca）— 舒缓精神内耗·疏导积压情绪</option>
+          <option>热带森林香（Tropical Forest）— 释放高压·舒缓紧绷·深度放松</option>
+          <option>咖啡香（Café）— 驱散萎靡·唤醒活力·提升行动力</option>
+          <option>迷迭香（Romero）— 理清混沌思绪·破除迷茫·提升决断力</option>
+          <option>柠檬香（Lemon）— 驱散阴郁·扫除霉运·轻快明朗</option>
+          <option>檀香（Sandal）— 安神稳心·轻度吸引贵人·日常安稳</option>
+          <option>甜橙香（Naranja Dulce）— 滋养喜乐·舒缓焦虑·提升幸福感</option>
+        </optgroup>
         <option value="__custom__">✎ 其他（自行输入）</option>
       </select>
       <input type="text" id="f_incense_custom" placeholder="请输入香品名" style="display:none;margin-top:4px;width:100%;">
@@ -465,7 +495,11 @@ function getQfType(){ return gRV('qf_type')||'个人'; }
 function getAltarType(){ return gRV('altar_type')||'祖师坛'; }
 function getIncenseName(){
   if(f_incense.value==='__custom__') return f_incense_custom.value.trim()||'﹁未填写﹂';
-  return f_incense.value||'﹁未选择﹂';
+  var v = f_incense.value||'﹁未选择﹂';
+  // Strip description after " — ", and parenthetical English names
+  v = v.split(' — ')[0];
+  v = v.replace(/（[^）]*）/g,'').replace(/\([^)]*\)/g,'').trim();
+  return v;
 }
 function showToast(msg,d=2500){const el=$('#toast');el.textContent=msg;el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),d)}
 
